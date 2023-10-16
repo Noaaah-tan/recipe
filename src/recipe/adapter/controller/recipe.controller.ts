@@ -1,50 +1,64 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
-import { get } from "http";
-import { Recipe, RecipeStatus } from "src/recipe/entity/recipe.model";
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from "@nestjs/common";
+import { GetRecipeFilterDto } from "src/recipe/adapter/dto/get-recipe-filter.dto"
 import { RecipeService } from "src/recipe/usecase/recipe.service";
-import { TaskStatus } from "src/tasks/task.model";
+import { UpdateRecipeStatusDto } from "../dto/update-recipe-status.dto";
+import { Recipe } from "src/recipe/entity/recipe.entity";
+import { CreateRecipeDto } from "../dto/create-recipe.dto";
+import { AuthGuard } from '@nestjs/passport';
+import {v4 as uuid} from "uuid";
+import { User } from "src/auth/Entity/user.entity";
+import { GetUser } from "src/auth/Controller/get-user.decorator";
 
 
 @Controller('recipe')
+@UseGuards(AuthGuard())
+
 export class RecipeController {
    
 
-    constructor(private recipeService:RecipeService ){}
+    constructor(private recipeService: RecipeService ){}
 
     @Get('/fetch')
-    getAllRecipes() {
-        return this.recipeService.getAllRecipes();
-
+    getRecipe(@Query()filterDto: GetRecipeFilterDto, @GetUser() user: User, 
+    ): Promise<Recipe[]> {
+      return this.recipeService.getRecipes(filterDto, user);
     }
 
-    @Get('/fetch/:id')
-    getRecipeByID(@Param('id') id: string) : Recipe {
-        return this.recipeService.getRecipeById(id);
-
+    @Get('fetch/:id')
+    getRecipeById(@Param('id') id: string,
+    @GetUser() user: User,) : Promise<Recipe> { 
+        return this.recipeService.getRecipeById(id,user);
     }
+
+
 
     @Post('/create')
-    createRecipe(
-        @Body('Name') title: string,
-        @Body('Description') description: string
-    ): Recipe {
-        return this.recipeService.createRecipe(title,description);
-
+    createRecipe(@Body() createRecipeDto: CreateRecipeDto,
+    @GetUser() user: User, 
+    ): Promise<Recipe>{
+        return this.recipeService.createRecipe(createRecipeDto,user);
     }
+
     
+        
+
+
     @Delete('/delete/:id')
-    deleteRecipe(@Param('id') id:string): void {
-        return this.recipeService.deleteRecipe(id);
+    deleteRecipe(@Param('id') id:string,
+    @GetUser() user: User, ): Promise <void> {
+        return this.recipeService.deleteRecipe(id,user);
 
     }
   
     @Patch('/update/:id/status')
     updateRecipeStatus(
         @Param('id') id: string,
-        @Body('Description') recipe_Description: string    
-    ): Recipe {
+        @Body() updateRecipeStatusDto: UpdateRecipeStatusDto,
+        @GetUser() user: User,    
+    ): Promise <Recipe> {
 
-        return this.recipeService.updateRecipeStatus(id,recipe_Description);
+        const { status } = updateRecipeStatusDto;
+        return this.recipeService.updateRecipeStatus(id,status,user);
 
     }
 

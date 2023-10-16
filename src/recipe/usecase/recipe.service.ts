@@ -1,40 +1,63 @@
-import { Injectable } from "@nestjs/common";
-import { Recipe, RecipeStatus } from "../entity/recipe.model";
-import { v4 as uuid} from 'uuid'
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { RecipeStatus } from "../entity/recipe-status.enum";
+import { CreateRecipeDto } from "../adapter/dto/create-recipe.dto";
+import { GetRecipeFilterDto } from "src/recipe/adapter/dto/get-recipe-filter.dto";
+import { RecipesRepository } from "../adapter/repository/recipes.repository";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Recipe } from "../entity/recipe.entity";
+import {v4 as uuid} from "uuid";
+import { User } from "src/auth/Entity/user.entity";
+
+
 
 
 @Injectable()
 export class RecipeService {
-    private recipes: Recipe[] = [];
+    
+    constructor(
+        @InjectRepository(RecipesRepository)
+        private recipeRepository:RecipesRepository,
+    ){
 
-    getAllRecipes(): Recipe[] {
-        return this.recipes;
-}
+    }
 
-getRecipeById(id: string): Recipe {
-    return this.recipes.find((recipe) => recipe.Recipe_id === id);
-}
 
-createRecipe(recipe_Title: string, recipe_Description: string ): Recipe{
-    const recipe: Recipe = {
-        Recipe_id: uuid() ,
-        recipe_Title, 
-        recipe_Description,
-        status: RecipeStatus.OPEN
-    };
-
-    this.recipes.push(recipe);  //task value mapupush sa tasks array
-    return recipe;
+getRecipes(filterDto:GetRecipeFilterDto, user: User): Promise<Recipe[]>{
+    return this.recipeRepository.getRecipes(filterDto,user);
 
 }
 
-deleteRecipe(id: string): void {
-     this.recipes = this.recipes.filter((recipe) => recipe.Recipe_id !== id);
+async getRecipeById(id:string, user: User): Promise<Recipe>{
+    const found = await this.recipeRepository.findOne({where: {id, user}});
+
+    if (!found) {
+        throw new NotFoundException('Recipe with ID ${id} not found');
+    }
+
+    return found;
+
 }
 
-updateRecipeStatus(id: string, recipe_Description: string) {
-     const recipe = this.getRecipeById(id);
-     recipe.recipe_Description = recipe_Description;
+ createRecipe(createRecipeDto:CreateRecipeDto, user: User): Promise<Recipe>{
+
+     return this.recipeRepository.createRecipe(createRecipeDto, user);
+}
+
+
+async deleteRecipe(id: string, user: User): Promise<void> {
+    const result = await this.recipeRepository.delete({ id, user });
+    
+    if (result.affected === 0){
+        throw new NotFoundException ('Recipe with ID `${id}` not found');
+    }
+}
+
+async updateRecipeStatus(id: string, status: RecipeStatus, user: User): Promise<Recipe> {
+     const recipe = await this.getRecipeById(id, user);
+     
+recipe.status = status;
+    await this.recipeRepository.save(recipe);
+
      return recipe;
 
 }
