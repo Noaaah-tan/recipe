@@ -1,17 +1,17 @@
-import { Recipe } from "src/recipe/entity/recipe.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Recipe } from 'src/recipe/entity/recipe.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
-    
-    @Column({ unique: true })
-    username: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    password: string;
+  @Column({ unique: true })
+  username: string;
 
-    @OneToMany( _type => Recipe, recipe => recipe.user, { eager: true })
-    recipes: Recipe[];
- } 
+  @Column()
+  password: string;
+
+  @OneToMany((_type) => Recipe, (recipe) => recipe.user, { eager: true })
+  recipes: Recipe[];
+}

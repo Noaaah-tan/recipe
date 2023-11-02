@@ -5,22 +5,19 @@ import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Recipe {
+  @PrimaryGeneratedColumn('uuid') // Specify 'uuid' for a UUID primary key
+  id: string;
 
-    @PrimaryGeneratedColumn('uuid') // Specify 'uuid' for a UUID primary key
-    id: string;
+  @Column()
+  title: string;
 
-    @Column()
-    title: string;
+  @Column()
+  description: string;
 
-    @Column()
-    description: string;
+  @Column()
+  status: RecipeStatus;
 
-    @Column()
-    status: RecipeStatus;
-
-    @ManyToOne(_type => User, user => user.recipes, { eager: false })
-    @Exclude({ toPlainOnly: true })
-    user: User;
-
-
+  @ManyToOne((_type) => User, (user) => user.recipes, { eager: false })
+  @Exclude({ toPlainOnly: true })
+  user: User;
 }

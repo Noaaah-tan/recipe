@@ -1,4 +1,5 @@
 {
   "singleQuote": true,
-  "trailingComma": "all"
+  "trailingComma": "all",
+  "endOfLine": "crlf" // or "lf" for Unix-like line endings, or "crlf" for Windows-style line endings
 }

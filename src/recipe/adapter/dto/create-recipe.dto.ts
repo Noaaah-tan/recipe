@@ -1,11 +1,9 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty } from 'class-validator';
 
-export class CreateRecipeDto{
+export class CreateRecipeDto {
+  @IsNotEmpty()
+  title: string;
 
-    @IsNotEmpty()
-    title: string;
-
-    @IsNotEmpty()
-    description: string;
+  @IsNotEmpty()
+  description: string;
 }
-
